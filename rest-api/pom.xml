@@ -20,15 +20,14 @@
 		<version>0.2.0-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>org.eclipse.kapua.app.api</artifactId>
+	<artifactId>kapua-rest-api</artifactId>
+	<name>${project.artifactId}</name>
 	<packaging>war</packaging>
-	<name>org.eclipse.kapua.app.api</name>
 
 	<properties>
 		<jersey.version>2.23.2</jersey.version>
 		<swagger.version>1.5.10</swagger.version>
 		<swagger-ui.version>2.1.4</swagger-ui.version>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
     <repositories>
@@ -125,13 +124,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.kapua</groupId>
-			<artifactId>org.eclipse.kapua.translator.kura.jms</artifactId>
-			<version>${project.version}</version>
+			<artifactId>kapua-translator-kura-jms</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.kapua</groupId>
-			<artifactId>org.eclipse.kapua.translator.kura.mqtt</artifactId>
-			<version>${project.version}</version>
+			<artifactId>kapua-translator-kura-mqtt</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.kapua</groupId>
