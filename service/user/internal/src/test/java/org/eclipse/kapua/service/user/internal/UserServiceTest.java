@@ -64,16 +64,7 @@ public class UserServiceTest  extends KapuaTest {
     public void createUser() throws Exception {
 
         doPriviledge(() -> {
-            long now = (new Date()).getTime();
-            String username = MessageFormat.format("aaa_test_username_{0,number,#}", now);
-            String userEmail = MessageFormat.format("testuser_{0,number,#}@organization.com", now);
-            String displayName = MessageFormat.format("User Display Name {0}", now);
-
-            UserCreator userCreator = new UserFactoryImpl().newCreator(scopeId, username);
-
-            userCreator.setDisplayName(displayName);
-            userCreator.setEmail(userEmail);
-            userCreator.setPhoneNumber("+1 555 123 4567");
+            UserCreator userCreator = userCreatorCreator();
 
             User user = userService.create(userCreator);
             user = userService.find(user.getScopeId(), user.getId());
@@ -101,16 +92,7 @@ public class UserServiceTest  extends KapuaTest {
     public void updateUser() throws Exception {
 
         doPriviledge(() -> {
-            long now = (new Date()).getTime();
-            String username = MessageFormat.format("aaa_test_username_{0,number,#}", now);
-            String userEmail = MessageFormat.format("testuser_{0,number,#}@organization.com", now);
-            String displayName = MessageFormat.format("User Display Name {0}", now);
-
-            UserCreator userCreator = new UserFactoryImpl().newCreator(scopeId, username);
-
-            userCreator.setDisplayName(displayName);
-            userCreator.setEmail(userEmail);
-            userCreator.setPhoneNumber("+1 555 123 4567");
+            UserCreator userCreator = userCreatorCreator();
 
             User user = userService.create(userCreator);
             User userToBeUpdated = userService.find(user.getScopeId(), user.getId());
@@ -131,16 +113,7 @@ public class UserServiceTest  extends KapuaTest {
     public void deleteUser() throws Exception {
 
         doPriviledge(() -> {
-            long now = (new Date()).getTime();
-            String username = MessageFormat.format("aaa_test_username_{0,number,#}", now);
-            String userEmail = MessageFormat.format("testuser_{0,number,#}@organization.com", now);
-            String displayName = MessageFormat.format("User Display Name {0}", now);
-
-            UserCreator userCreator = new UserFactoryImpl().newCreator(scopeId, username);
-
-            userCreator.setDisplayName(displayName);
-            userCreator.setEmail(userEmail);
-            userCreator.setPhoneNumber("+1 555 123 4567");
+            UserCreator userCreator = userCreatorCreator();
 
             User user = userService.create(userCreator);
 
@@ -157,16 +130,7 @@ public class UserServiceTest  extends KapuaTest {
     public void queryUser() throws Exception {
         
         doPriviledge(() -> {
-            long now = (new Date()).getTime();
-            String username = MessageFormat.format("aaa_test_username_{0,number,#}", now);
-            String userEmail = MessageFormat.format("testuser_{0,number,#}@organization.com", now);
-            String displayName = MessageFormat.format("User Display Name {0}", now);
-
-            UserCreator userCreator = new UserFactoryImpl().newCreator(scopeId, username);
-
-            userCreator.setDisplayName(displayName);
-            userCreator.setEmail(userEmail);
-            userCreator.setPhoneNumber("+1 555 123 4567");
+            UserCreator userCreator = userCreatorCreator();
 
             User user = userService.create(userCreator);
 
@@ -184,16 +148,7 @@ public class UserServiceTest  extends KapuaTest {
     public void countUser() throws Exception {
         
         doPriviledge(() -> {
-            long now = (new Date()).getTime();
-            String username = MessageFormat.format("aaa_test_username_{0,number,#}", now);
-            String userEmail = MessageFormat.format("testuser_{0,number,#}@organization.com", now);
-            String displayName = MessageFormat.format("User Display Name {0}", now);
-
-            UserCreator userCreator = new UserFactoryImpl().newCreator(scopeId, username);
-
-            userCreator.setDisplayName(displayName);
-            userCreator.setEmail(userEmail);
-            userCreator.setPhoneNumber("+1 555 123 4567");
+            UserCreator userCreator = userCreatorCreator();
 
             User user = userService.create(userCreator);
 
@@ -211,16 +166,7 @@ public class UserServiceTest  extends KapuaTest {
     public void createUserThatExists() throws Exception {
 
         doPriviledge(() -> {
-            long now = (new Date()).getTime();
-            String username = MessageFormat.format("aaa_test_username_{0,number,#}", now);
-            String userEmail = MessageFormat.format("testuser_{0,number,#}@organization.com", now);
-            String displayName = MessageFormat.format("User Display Name {0}", now);
-
-            UserCreator userCreator = new UserFactoryImpl().newCreator(scopeId, username);
-
-            userCreator.setDisplayName(displayName);
-            userCreator.setEmail(userEmail);
-            userCreator.setPhoneNumber("+1 555 123 4567");
+            UserCreator userCreator = userCreatorCreator();
 
             User user1 = userService.create(userCreator);
             User user2 = userService.create(userCreator);
@@ -234,15 +180,7 @@ public class UserServiceTest  extends KapuaTest {
     public void updateNonExistentUser() throws Exception {
 
         doPriviledge(() -> {
-            long now = (new Date()).getTime();
-            String username = MessageFormat.format("aaa_test_username_{0,number,#}", now);
-            String userEmail = MessageFormat.format("testuser_{0,number,#}@organization.com", now);
-            String displayName = MessageFormat.format("User Display Name {0}", now);
-            User user = new UserImpl(scopeId, username);
-            user.setId(scopeId);
-            user.setName(username);
-            user.setDisplayName(displayName);
-            user.setEmail(userEmail);
+            User user = createUserInstance();
 
             User updatedUser = userService.update(user);
 
@@ -255,15 +193,7 @@ public class UserServiceTest  extends KapuaTest {
     public void deleteNonExistentUser() throws Exception {
 
         doPriviledge(() -> {
-            long now = (new Date()).getTime();
-            String username = MessageFormat.format("aaa_test_username_{0,number,#}", now);
-            String userEmail = MessageFormat.format("testuser_{0,number,#}@organization.com", now);
-            String displayName = MessageFormat.format("User Display Name {0}", now);
-            User user = new UserImpl(scopeId, username);
-            user.setId(scopeId);
-            user.setName(username);
-            user.setDisplayName(displayName);
-            user.setEmail(userEmail);
+            User user = createUserInstance();
 
             userService.delete(user);
 
@@ -282,7 +212,6 @@ public class UserServiceTest  extends KapuaTest {
             return null;
         });
     }
-
 
     @Test
     @TestCase(caseId = "KAPUA_0010")
@@ -310,6 +239,50 @@ public class UserServiceTest  extends KapuaTest {
 
             return null;
         });
+    }
+
+    /**
+     * Create userCreator instance with quasi random data for user name,
+     * email and display name.
+     * 
+     * @return UserCreator instance for creating user
+     */
+    private UserCreator userCreatorCreator() {
+        
+        long now = (new Date()).getTime();
+        String username = MessageFormat.format("aaa_test_username_{0,number,#}", now);
+        String userEmail = MessageFormat.format("testuser_{0,number,#}@organization.com", now);
+        String displayName = MessageFormat.format("User Display Name {0}", now);
+
+        UserCreator userCreator = new UserFactoryImpl().newCreator(scopeId, username);
+
+        userCreator.setDisplayName(displayName);
+        userCreator.setEmail(userEmail);
+        userCreator.setPhoneNumber("+1 555 123 4567");
+        
+        return userCreator;
+    }
+    
+    /**
+     * Create User object with user data filed with quasi random data for user name,
+     * email, display name. Scope id and user id is set to test wide id.
+     * 
+     * @return User instance
+     */
+    private User createUserInstance() {
+        long now = (new Date()).getTime();
+        String username = MessageFormat.format("aaa_test_username_{0,number,#}", now);
+        String userEmail = MessageFormat.format("testuser_{0,number,#}@organization.com", now);
+        String displayName = MessageFormat.format("User Display Name {0}", now);
+        
+        User user = new UserImpl(scopeId, username);
+        
+        user.setId(scopeId);
+        user.setName(username);
+        user.setDisplayName(displayName);
+        user.setEmail(userEmail);
+        
+        return user;
     }
 
 }
