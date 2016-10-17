@@ -22,8 +22,10 @@ import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.commons.jpa.AbstractEntityManagerFactory;
 import org.eclipse.kapua.commons.model.id.KapuaEid;
 import org.eclipse.kapua.locator.KapuaLocator;
+import org.eclipse.kapua.model.query.KapuaQuery;
 import org.eclipse.kapua.service.user.User;
 import org.eclipse.kapua.service.user.UserCreator;
+import org.eclipse.kapua.service.user.UserListResult;
 import org.eclipse.kapua.service.user.UserService;
 import org.eclipse.kapua.service.user.UserStatus;
 import org.eclipse.kapua.test.KapuaTest;
@@ -58,23 +60,24 @@ public class UserServiceTest  extends KapuaTest {
     }
     
     @Test
-    @TestCase(caseId="KAPUA_0001")
+    @TestCase(caseId = "KAPUA_0001")
     public void createUser() throws Exception {
+
         doPriviledge(() -> {
-        	long now = (new Date()).getTime();
+            long now = (new Date()).getTime();
             String username = MessageFormat.format("aaa_test_username_{0,number,#}", now);
             String userEmail = MessageFormat.format("testuser_{0,number,#}@organization.com", now);
             String displayName = MessageFormat.format("User Display Name {0}", now);
-        	
+
             UserCreator userCreator = new UserFactoryImpl().newCreator(scopeId, username);
-            
+
             userCreator.setDisplayName(displayName);
             userCreator.setEmail(userEmail);
             userCreator.setPhoneNumber("+1 555 123 4567");
-            
+
             User user = userService.create(userCreator);
             user = userService.find(user.getScopeId(), user.getId());
-            
+
             assertNotNull(user.getId());
             assertNotNull(user.getId().getId());
             assertTrue(user.getOptlock() >= 0);
@@ -88,39 +91,225 @@ public class UserServiceTest  extends KapuaTest {
             assertEquals(userCreator.getEmail(), user.getEmail());
             assertEquals(userCreator.getPhoneNumber(), user.getPhoneNumber());
             assertEquals(UserStatus.ENABLED, user.getStatus());
-             
-        	return null;
+
+            return null;
         });
     }
 
     @Test
-    @TestCase(caseId="KAPUA_0002")
-    public void updateUser() {
-    	fail("Not implemented.");
+    @TestCase(caseId = "KAPUA_0002")
+    public void updateUser() throws Exception {
+
+        doPriviledge(() -> {
+            long now = (new Date()).getTime();
+            String username = MessageFormat.format("aaa_test_username_{0,number,#}", now);
+            String userEmail = MessageFormat.format("testuser_{0,number,#}@organization.com", now);
+            String displayName = MessageFormat.format("User Display Name {0}", now);
+
+            UserCreator userCreator = new UserFactoryImpl().newCreator(scopeId, username);
+
+            userCreator.setDisplayName(displayName);
+            userCreator.setEmail(userEmail);
+            userCreator.setPhoneNumber("+1 555 123 4567");
+
+            User user = userService.create(userCreator);
+            User userToBeUpdated = userService.find(user.getScopeId(), user.getId());
+
+            user.setDisplayName("changedUserName");
+            User updatedUser = userService.update(user);
+
+            assertEquals("changedUserName", updatedUser.getDisplayName());
+            assertTrue(updatedUser.getOptlock() > user.getOptlock());
+            assertTrue(updatedUser.getModifiedOn().after(userToBeUpdated.getModifiedOn()));
+
+            return null;
+        });
     }
 
     @Test
     @TestCase(caseId = "KAPUA_0003")
-    public void deleteUser() {
-        fail("Not implemented.");
+    public void deleteUser() throws Exception {
+
+        doPriviledge(() -> {
+            long now = (new Date()).getTime();
+            String username = MessageFormat.format("aaa_test_username_{0,number,#}", now);
+            String userEmail = MessageFormat.format("testuser_{0,number,#}@organization.com", now);
+            String displayName = MessageFormat.format("User Display Name {0}", now);
+
+            UserCreator userCreator = new UserFactoryImpl().newCreator(scopeId, username);
+
+            userCreator.setDisplayName(displayName);
+            userCreator.setEmail(userEmail);
+            userCreator.setPhoneNumber("+1 555 123 4567");
+
+            User user = userService.create(userCreator);
+
+            userService.delete(user);
+            User deletedUser = userService.find(user.getScopeId(), user.getId());
+            assertNull(deletedUser);
+
+            return null;
+        });
     }
-    
+
     @Test
     @TestCase(caseId = "KAPUA_0004")
-    public void findAllUsers() throws Exception {
-        fail("Not implemented.");
+    public void queryUser() throws Exception {
+        
+        doPriviledge(() -> {
+            long now = (new Date()).getTime();
+            String username = MessageFormat.format("aaa_test_username_{0,number,#}", now);
+            String userEmail = MessageFormat.format("testuser_{0,number,#}@organization.com", now);
+            String displayName = MessageFormat.format("User Display Name {0}", now);
+
+            UserCreator userCreator = new UserFactoryImpl().newCreator(scopeId, username);
+
+            userCreator.setDisplayName(displayName);
+            userCreator.setEmail(userEmail);
+            userCreator.setPhoneNumber("+1 555 123 4567");
+
+            User user = userService.create(userCreator);
+
+            KapuaQuery<User> query = new UserFactoryImpl().newQuery(scopeId);
+            UserListResult queryResult = userService.query(query);
+            
+            assertEquals(1, queryResult.getSize());
+
+            return null;
+        });
     }
     
     @Test
     @TestCase(caseId = "KAPUA_0005")
-    public void updatePermisionsRoles() throws Exception {
-        fail("Not implemented.");
+    public void countUser() throws Exception {
+        
+        doPriviledge(() -> {
+            long now = (new Date()).getTime();
+            String username = MessageFormat.format("aaa_test_username_{0,number,#}", now);
+            String userEmail = MessageFormat.format("testuser_{0,number,#}@organization.com", now);
+            String displayName = MessageFormat.format("User Display Name {0}", now);
+
+            UserCreator userCreator = new UserFactoryImpl().newCreator(scopeId, username);
+
+            userCreator.setDisplayName(displayName);
+            userCreator.setEmail(userEmail);
+            userCreator.setPhoneNumber("+1 555 123 4567");
+
+            User user = userService.create(userCreator);
+
+            KapuaQuery<User> query = new UserFactoryImpl().newQuery(scopeId);
+            long userCnt = userService.count(query);
+            
+            assertEquals(1, userCnt);
+
+            return null;
+        });
     }
-    
-    @Test
+
+    @Test(expected = KapuaException.class)
     @TestCase(caseId = "KAPUA_0006")
-    public void selfViewManagePermission() throws Exception {
-        fail("Not implemented.");
+    public void createUserThatExists() throws Exception {
+
+        doPriviledge(() -> {
+            long now = (new Date()).getTime();
+            String username = MessageFormat.format("aaa_test_username_{0,number,#}", now);
+            String userEmail = MessageFormat.format("testuser_{0,number,#}@organization.com", now);
+            String displayName = MessageFormat.format("User Display Name {0}", now);
+
+            UserCreator userCreator = new UserFactoryImpl().newCreator(scopeId, username);
+
+            userCreator.setDisplayName(displayName);
+            userCreator.setEmail(userEmail);
+            userCreator.setPhoneNumber("+1 555 123 4567");
+
+            User user1 = userService.create(userCreator);
+            User user2 = userService.create(userCreator);
+
+            return null;
+        });
+    }
+
+    @Test(expected = KapuaException.class)
+    @TestCase(caseId = "KAPUA_0007")
+    public void updateNonExistentUser() throws Exception {
+
+        doPriviledge(() -> {
+            long now = (new Date()).getTime();
+            String username = MessageFormat.format("aaa_test_username_{0,number,#}", now);
+            String userEmail = MessageFormat.format("testuser_{0,number,#}@organization.com", now);
+            String displayName = MessageFormat.format("User Display Name {0}", now);
+            User user = new UserImpl(scopeId, username);
+            user.setId(scopeId);
+            user.setName(username);
+            user.setDisplayName(displayName);
+            user.setEmail(userEmail);
+
+            User updatedUser = userService.update(user);
+
+            return null;
+        });
+    }
+
+    @Test(expected = KapuaException.class)
+    @TestCase(caseId = "KAPUA_0008")
+    public void deleteNonExistentUser() throws Exception {
+
+        doPriviledge(() -> {
+            long now = (new Date()).getTime();
+            String username = MessageFormat.format("aaa_test_username_{0,number,#}", now);
+            String userEmail = MessageFormat.format("testuser_{0,number,#}@organization.com", now);
+            String displayName = MessageFormat.format("User Display Name {0}", now);
+            User user = new UserImpl(scopeId, username);
+            user.setId(scopeId);
+            user.setName(username);
+            user.setDisplayName(displayName);
+            user.setEmail(userEmail);
+
+            userService.delete(user);
+
+            return null;
+        });
+    }
+
+    @Test
+    @TestCase(caseId = "KAPUA_0009")
+    public void findNonExistentUser() throws Exception {
+
+        doPriviledge(() -> {
+            User user = userService.find(scopeId, scopeId);
+            assertNull(user);
+
+            return null;
+        });
+    }
+
+
+    @Test
+    @TestCase(caseId = "KAPUA_0010")
+    public void findNonExistentUserByName() throws Exception {
+
+        doPriviledge(() -> {
+            User user = userService.findByName("Nonexistent");
+            assertNull(user);
+
+            return null;
+        });
+    }
+
+    @Test(expected = KapuaException.class)
+    @TestCase(caseId = "KAPUA_0011")
+    public void deleteSystemUser() throws Exception {
+
+        doPriviledge(() -> {
+            User user = userService.findByName("kapua-sys");
+
+            userService.delete(user);
+            User sysUser = userService.findByName("kapua-sys");
+            
+            assertNotNull(sysUser);
+
+            return null;
+        });
     }
 
 }
