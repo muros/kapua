@@ -14,10 +14,6 @@ package org.eclipse.kapua.service.user.internal.setting;
 
 import static org.junit.Assert.assertEquals;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-
-import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.test.annotations.TestCase;
 import org.junit.Test;
 

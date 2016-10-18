@@ -35,30 +35,30 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class UserServiceTest  extends KapuaTest {
+public class UserServiceTest extends KapuaTest {
 
-	UserService userService = KapuaLocator.getInstance().getService(UserService.class);
-	
-	public static String DEFAULT_FILTER = "usr_*.sql";
+    UserService userService = KapuaLocator.getInstance().getService(UserService.class);
+
+    public static String DEFAULT_FILTER = "usr_*.sql";
     public static String DROP_FILTER = "usr_*_drop.sql";
- 
+
     KapuaEid scopeId = new KapuaEid(BigInteger.valueOf(random.nextLong()));
-    
+
     @Before
     public void before() {
     }
-    
+
     @BeforeClass
     public static void beforeClass() throws KapuaException {
         enableH2Connection();
-        scriptSession((AbstractEntityManagerFactory)UserEntityManagerFactory.getInstance(), DEFAULT_FILTER);
+        scriptSession((AbstractEntityManagerFactory) UserEntityManagerFactory.getInstance(), DEFAULT_FILTER);
     }
 
     @AfterClass
     public static void afterClass() throws KapuaException {
-        scriptSession((AbstractEntityManagerFactory)UserEntityManagerFactory.getInstance(), DROP_FILTER);
+        scriptSession((AbstractEntityManagerFactory) UserEntityManagerFactory.getInstance(), DROP_FILTER);
     }
-    
+
     @Test
     @TestCase(caseId = "KAPUA_0001")
     public void createUser() throws Exception {
@@ -128,7 +128,7 @@ public class UserServiceTest  extends KapuaTest {
     @Test
     @TestCase(caseId = "KAPUA_0004")
     public void queryUser() throws Exception {
-        
+
         doPriviledge(() -> {
             UserCreator userCreator = userCreatorCreator();
 
@@ -136,17 +136,17 @@ public class UserServiceTest  extends KapuaTest {
 
             KapuaQuery<User> query = new UserFactoryImpl().newQuery(scopeId);
             UserListResult queryResult = userService.query(query);
-            
+
             assertEquals(1, queryResult.getSize());
 
             return null;
         });
     }
-    
+
     @Test
     @TestCase(caseId = "KAPUA_0005")
     public void countUser() throws Exception {
-        
+
         doPriviledge(() -> {
             UserCreator userCreator = userCreatorCreator();
 
@@ -154,7 +154,7 @@ public class UserServiceTest  extends KapuaTest {
 
             KapuaQuery<User> query = new UserFactoryImpl().newQuery(scopeId);
             long userCnt = userService.count(query);
-            
+
             assertEquals(1, userCnt);
 
             return null;
@@ -234,7 +234,7 @@ public class UserServiceTest  extends KapuaTest {
 
             userService.delete(user);
             User sysUser = userService.findByName("kapua-sys");
-            
+
             assertNotNull(sysUser);
 
             return null;
@@ -248,7 +248,7 @@ public class UserServiceTest  extends KapuaTest {
      * @return UserCreator instance for creating user
      */
     private UserCreator userCreatorCreator() {
-        
+
         long now = (new Date()).getTime();
         String username = MessageFormat.format("aaa_test_username_{0,number,#}", now);
         String userEmail = MessageFormat.format("testuser_{0,number,#}@organization.com", now);
@@ -259,10 +259,10 @@ public class UserServiceTest  extends KapuaTest {
         userCreator.setDisplayName(displayName);
         userCreator.setEmail(userEmail);
         userCreator.setPhoneNumber("+1 555 123 4567");
-        
+
         return userCreator;
     }
-    
+
     /**
      * Create User object with user data filed with quasi random data for user name,
      * email, display name. Scope id and user id is set to test wide id.
@@ -274,14 +274,14 @@ public class UserServiceTest  extends KapuaTest {
         String username = MessageFormat.format("aaa_test_username_{0,number,#}", now);
         String userEmail = MessageFormat.format("testuser_{0,number,#}@organization.com", now);
         String displayName = MessageFormat.format("User Display Name {0}", now);
-        
+
         User user = new UserImpl(scopeId, username);
-        
+
         user.setId(scopeId);
         user.setName(username);
         user.setDisplayName(displayName);
         user.setEmail(userEmail);
-        
+
         return user;
     }
 
