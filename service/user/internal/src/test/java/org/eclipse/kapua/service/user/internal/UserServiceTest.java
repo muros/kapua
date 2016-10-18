@@ -132,7 +132,7 @@ public class UserServiceTest extends KapuaTest {
         doPriviledge(() -> {
             UserCreator userCreator = userCreatorCreator();
 
-            User user = userService.create(userCreator);
+            userService.create(userCreator);
 
             KapuaQuery<User> query = new UserFactoryImpl().newQuery(scopeId);
             UserListResult queryResult = userService.query(query);
@@ -150,7 +150,7 @@ public class UserServiceTest extends KapuaTest {
         doPriviledge(() -> {
             UserCreator userCreator = userCreatorCreator();
 
-            User user = userService.create(userCreator);
+            userService.create(userCreator);
 
             KapuaQuery<User> query = new UserFactoryImpl().newQuery(scopeId);
             long userCnt = userService.count(query);
@@ -168,8 +168,8 @@ public class UserServiceTest extends KapuaTest {
         doPriviledge(() -> {
             UserCreator userCreator = userCreatorCreator();
 
-            User user1 = userService.create(userCreator);
-            User user2 = userService.create(userCreator);
+            userService.create(userCreator);
+            userService.create(userCreator);
 
             return null;
         });
@@ -182,7 +182,7 @@ public class UserServiceTest extends KapuaTest {
         doPriviledge(() -> {
             User user = createUserInstance();
 
-            User updatedUser = userService.update(user);
+            userService.update(user);
 
             return null;
         });
@@ -236,6 +236,25 @@ public class UserServiceTest extends KapuaTest {
             User sysUser = userService.findByName("kapua-sys");
 
             assertNotNull(sysUser);
+
+            return null;
+        });
+    }
+
+    @Test
+    @TestCase(caseId = "KAPUA_0013")
+    public void createMultipleUsers() throws Exception {
+
+        doPriviledge(() -> {
+            for (int userCnt = 0; userCnt < 3; userCnt++) {
+                UserCreator userCreator = userCreatorCreator();
+                userService.create(userCreator);
+            }
+
+            KapuaQuery<User> query = new UserFactoryImpl().newQuery(scopeId);
+            long userCnt = userService.count(query);
+
+            assertEquals(3, userCnt);
 
             return null;
         });
