@@ -11,7 +11,7 @@
 #
 #*******************************************************************************
 vagrant ssh -c "echo 'deploying the Kapua broker'
-	cd /usr/local/kapua/apache-activemq-${ACTIVEMQ_VERSION}
+	cd /usr/local/activemq/apache-activemq-${ACTIVEMQ_VERSION}
 	echo 'deleting different guava/shiro runtime dependency'
 	sudo rm lib/optional/guava-*
 	sudo rm lib/optional/shiro-*

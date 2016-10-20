@@ -12,8 +12,6 @@
  *******************************************************************************/
 package org.eclipse.kapua.service.user.internal;
 
-import static org.eclipse.kapua.commons.security.KapuaSecurityUtils.doPriviledge;
-
 import java.math.BigInteger;
 import java.text.MessageFormat;
 import java.util.Date;
@@ -42,7 +40,8 @@ public class UserServiceTest extends KapuaTest {
     public static String DEFAULT_FILTER = "usr_*.sql";
     public static String DROP_FILTER = "usr_*_drop.sql";
 
-    KapuaEid scopeId = new KapuaEid(BigInteger.valueOf(random.nextLong()));
+    // scopeId is different for each test method so that data does not have to be cleared
+    final KapuaEid scopeId = new KapuaEid(BigInteger.valueOf(random.nextLong()));
 
     @Before
     public void before() {
@@ -50,12 +49,14 @@ public class UserServiceTest extends KapuaTest {
 
     @BeforeClass
     public static void beforeClass() throws KapuaException {
+
         enableH2Connection();
         scriptSession((AbstractEntityManagerFactory) UserEntityManagerFactory.getInstance(), DEFAULT_FILTER);
     }
 
     @AfterClass
     public static void afterClass() throws KapuaException {
+
         scriptSession((AbstractEntityManagerFactory) UserEntityManagerFactory.getInstance(), DROP_FILTER);
     }
 
@@ -63,201 +64,154 @@ public class UserServiceTest extends KapuaTest {
     @TestCase(caseId = "KAPUA_0001")
     public void createUser() throws Exception {
 
-        doPriviledge(() -> {
-            UserCreator userCreator = userCreatorCreator();
+        UserCreator userCreator = userCreatorCreator();
 
-            User user = userService.create(userCreator);
-            user = userService.find(user.getScopeId(), user.getId());
+        User user = userService.create(userCreator);
+        user = userService.find(user.getScopeId(), user.getId());
 
-            assertNotNull(user.getId());
-            assertNotNull(user.getId().getId());
-            assertTrue(user.getOptlock() >= 0);
-            assertEquals(scopeId, user.getScopeId());
-            assertEquals(userCreator.getName(), user.getName());
-            assertNotNull(user.getCreatedOn());
-            assertNotNull(user.getCreatedBy());
-            assertNotNull(user.getModifiedOn());
-            assertNotNull(user.getModifiedBy());
-            assertEquals(userCreator.getDisplayName(), user.getDisplayName());
-            assertEquals(userCreator.getEmail(), user.getEmail());
-            assertEquals(userCreator.getPhoneNumber(), user.getPhoneNumber());
-            assertEquals(UserStatus.ENABLED, user.getStatus());
-
-            return null;
-        });
+        assertNotNull(user.getId());
+        assertNotNull(user.getId().getId());
+        assertTrue(user.getOptlock() >= 0);
+        assertEquals(scopeId, user.getScopeId());
+        assertEquals(userCreator.getName(), user.getName());
+        assertNotNull(user.getCreatedOn());
+        assertNotNull(user.getCreatedBy());
+        assertNotNull(user.getModifiedOn());
+        assertNotNull(user.getModifiedBy());
+        assertEquals(userCreator.getDisplayName(), user.getDisplayName());
+        assertEquals(userCreator.getEmail(), user.getEmail());
+        assertEquals(userCreator.getPhoneNumber(), user.getPhoneNumber());
+        assertEquals(UserStatus.ENABLED, user.getStatus());
     }
 
     @Test
     @TestCase(caseId = "KAPUA_0002")
     public void updateUser() throws Exception {
 
-        doPriviledge(() -> {
-            UserCreator userCreator = userCreatorCreator();
+        UserCreator userCreator = userCreatorCreator();
 
-            User user = userService.create(userCreator);
-            User userToBeUpdated = userService.find(user.getScopeId(), user.getId());
+        User user = userService.create(userCreator);
+        User userToBeUpdated = userService.find(user.getScopeId(), user.getId());
 
-            user.setDisplayName("changedUserName");
-            User updatedUser = userService.update(user);
+        user.setDisplayName("changedUserName");
+        User updatedUser = userService.update(user);
 
-            assertEquals("changedUserName", updatedUser.getDisplayName());
-            assertTrue(updatedUser.getOptlock() > user.getOptlock());
-            assertTrue(updatedUser.getModifiedOn().after(userToBeUpdated.getModifiedOn()));
-
-            return null;
-        });
+        assertEquals("changedUserName", updatedUser.getDisplayName());
+        assertTrue(updatedUser.getOptlock() > user.getOptlock());
+        assertTrue(updatedUser.getModifiedOn().after(userToBeUpdated.getModifiedOn()));
     }
 
     @Test
     @TestCase(caseId = "KAPUA_0003")
     public void deleteUser() throws Exception {
 
-        doPriviledge(() -> {
-            UserCreator userCreator = userCreatorCreator();
+        UserCreator userCreator = userCreatorCreator();
 
-            User user = userService.create(userCreator);
+        User user = userService.create(userCreator);
 
-            userService.delete(user);
-            User deletedUser = userService.find(user.getScopeId(), user.getId());
-            assertNull(deletedUser);
-
-            return null;
-        });
+        userService.delete(user);
+        User deletedUser = userService.find(user.getScopeId(), user.getId());
+        assertNull(deletedUser);
     }
 
     @Test
     @TestCase(caseId = "KAPUA_0004")
     public void queryUser() throws Exception {
 
-        doPriviledge(() -> {
-            UserCreator userCreator = userCreatorCreator();
+        UserCreator userCreator = userCreatorCreator();
 
-            userService.create(userCreator);
+        userService.create(userCreator);
 
-            KapuaQuery<User> query = new UserFactoryImpl().newQuery(scopeId);
-            UserListResult queryResult = userService.query(query);
+        KapuaQuery<User> query = new UserFactoryImpl().newQuery(scopeId);
+        UserListResult queryResult = userService.query(query);
 
-            assertEquals(1, queryResult.getSize());
-
-            return null;
-        });
+        assertEquals(1, queryResult.getSize());
     }
 
     @Test
     @TestCase(caseId = "KAPUA_0005")
     public void countUser() throws Exception {
 
-        doPriviledge(() -> {
-            UserCreator userCreator = userCreatorCreator();
+        UserCreator userCreator = userCreatorCreator();
 
-            userService.create(userCreator);
+        userService.create(userCreator);
 
-            KapuaQuery<User> query = new UserFactoryImpl().newQuery(scopeId);
-            long userCnt = userService.count(query);
+        KapuaQuery<User> query = new UserFactoryImpl().newQuery(scopeId);
+        long userCnt = userService.count(query);
 
-            assertEquals(1, userCnt);
-
-            return null;
-        });
+        assertEquals(1, userCnt);
     }
 
     @Test(expected = KapuaException.class)
     @TestCase(caseId = "KAPUA_0006")
     public void createUserThatExists() throws Exception {
 
-        doPriviledge(() -> {
-            UserCreator userCreator = userCreatorCreator();
+        UserCreator userCreator = userCreatorCreator();
 
-            userService.create(userCreator);
-            userService.create(userCreator);
-
-            return null;
-        });
+        userService.create(userCreator);
+        userService.create(userCreator);
     }
 
     @Test(expected = KapuaException.class)
     @TestCase(caseId = "KAPUA_0007")
     public void updateNonExistentUser() throws Exception {
 
-        doPriviledge(() -> {
-            User user = createUserInstance();
+        User user = createUserInstance();
 
-            userService.update(user);
-
-            return null;
-        });
+        userService.update(user);
     }
 
     @Test(expected = KapuaException.class)
     @TestCase(caseId = "KAPUA_0008")
     public void deleteNonExistentUser() throws Exception {
 
-        doPriviledge(() -> {
-            User user = createUserInstance();
+        User user = createUserInstance();
 
-            userService.delete(user);
-
-            return null;
-        });
+        userService.delete(user);
     }
 
     @Test
     @TestCase(caseId = "KAPUA_0009")
     public void findNonExistentUser() throws Exception {
 
-        doPriviledge(() -> {
-            User user = userService.find(scopeId, scopeId);
-            assertNull(user);
+        User user = userService.find(scopeId, scopeId);
+        assertNull(user);
 
-            return null;
-        });
     }
 
     @Test
     @TestCase(caseId = "KAPUA_0010")
     public void findNonExistentUserByName() throws Exception {
 
-        doPriviledge(() -> {
-            User user = userService.findByName("Nonexistent");
-            assertNull(user);
-
-            return null;
-        });
+        User user = userService.findByName("Nonexistent");
+        assertNull(user);
     }
 
     @Test(expected = KapuaException.class)
     @TestCase(caseId = "KAPUA_0011")
     public void deleteSystemUser() throws Exception {
 
-        doPriviledge(() -> {
-            User user = userService.findByName("kapua-sys");
+        User user = userService.findByName("kapua-sys");
 
-            userService.delete(user);
-            User sysUser = userService.findByName("kapua-sys");
+        userService.delete(user);
+        User sysUser = userService.findByName("kapua-sys");
 
-            assertNotNull(sysUser);
-
-            return null;
-        });
+        assertNotNull(sysUser);
     }
 
     @Test
     @TestCase(caseId = "KAPUA_0013")
     public void createMultipleUsers() throws Exception {
 
-        doPriviledge(() -> {
-            for (int userCnt = 0; userCnt < 3; userCnt++) {
-                UserCreator userCreator = userCreatorCreator();
-                userService.create(userCreator);
-            }
+        for (int userCnt = 0; userCnt < 3; userCnt++) {
+            UserCreator userCreator = userCreatorCreator();
+            userService.create(userCreator);
+        }
 
-            KapuaQuery<User> query = new UserFactoryImpl().newQuery(scopeId);
-            long userCnt = userService.count(query);
+        KapuaQuery<User> query = new UserFactoryImpl().newQuery(scopeId);
+        long userCnt = userService.count(query);
 
-            assertEquals(3, userCnt);
-
-            return null;
-        });
+        assertEquals(3, userCnt);
     }
 
     /**
