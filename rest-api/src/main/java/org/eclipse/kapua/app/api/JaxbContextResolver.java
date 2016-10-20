@@ -18,7 +18,6 @@ import javax.ws.rs.ext.Provider;
 import javax.xml.bind.JAXBContext;
 
 import org.eclipse.kapua.app.api.v1.resources.model.ErrorBean;
-import org.eclipse.kapua.commons.configuration.metatype.TocdImpl;
 import org.eclipse.kapua.model.config.metatype.KapuaTad;
 import org.eclipse.kapua.model.config.metatype.KapuaTicon;
 import org.eclipse.kapua.model.config.metatype.KapuaTocd;
@@ -51,6 +50,8 @@ import org.eclipse.kapua.service.device.registry.Device;
 import org.eclipse.kapua.service.device.registry.DeviceCreator;
 import org.eclipse.kapua.service.device.registry.DeviceListResult;
 import org.eclipse.kapua.service.device.registry.DeviceXmlRegistry;
+import org.eclipse.kapua.service.device.registry.connection.DeviceConnectionSummary;
+import org.eclipse.kapua.service.device.registry.connection.DeviceConnectionXmlRegistry;
 import org.eclipse.kapua.service.device.registry.event.DeviceEvent;
 import org.eclipse.kapua.service.device.registry.event.DeviceEventListResult;
 import org.eclipse.kapua.service.device.registry.event.DeviceEventXmlRegistry;
@@ -109,11 +110,12 @@ public class JaxbContextResolver implements ContextResolver<JAXBContext> {
                     KuraDeviceConfiguration.class,
                     KuraDeploymentPackages.class,
                     KuraDeploymentPackage.class,
-                    TocdImpl.class,
                     KapuaTocd.class,
                     KapuaTad.class,
                     KapuaTicon.class,
-                    KapuaToption.class
+                    KapuaToption.class,
+                    DeviceConnectionSummary.class,
+                    DeviceConnectionXmlRegistry.class
             }, null);
         } catch (Exception e) {
             throw new RuntimeException(e);

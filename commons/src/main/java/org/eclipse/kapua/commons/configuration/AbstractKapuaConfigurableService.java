@@ -26,7 +26,6 @@ import javax.xml.stream.XMLStreamException;
 
 import org.eclipse.kapua.KapuaEntityNotFoundException;
 import org.eclipse.kapua.KapuaException;
-import org.eclipse.kapua.commons.configuration.metatype.TmetadataImpl;
 import org.eclipse.kapua.commons.jpa.EntityManager;
 import org.eclipse.kapua.commons.jpa.EntityManagerFactory;
 import org.eclipse.kapua.commons.model.query.predicate.AndPredicate;
@@ -37,6 +36,7 @@ import org.eclipse.kapua.commons.util.ResourceUtils;
 import org.eclipse.kapua.commons.util.xml.XmlUtil;
 import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.model.config.metatype.KapuaTad;
+import org.eclipse.kapua.model.config.metatype.KapuaTmetadata;
 import org.eclipse.kapua.model.config.metatype.KapuaTocd;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.model.query.predicate.KapuaAttributePredicate.Operator;
@@ -45,6 +45,12 @@ import org.eclipse.kapua.service.authorization.permission.Actions;
 import org.eclipse.kapua.service.authorization.permission.PermissionFactory;
 import org.eclipse.kapua.service.config.KapuaConfigurableService;
 
+/**
+ * Configurable service definition abstract reference implementation.
+ * 
+ * @since 1.0
+ *
+ */
 @SuppressWarnings("serial")
 public abstract class AbstractKapuaConfigurableService implements KapuaConfigurableService, Serializable
 {
@@ -52,10 +58,20 @@ public abstract class AbstractKapuaConfigurableService implements KapuaConfigura
     private String pid    = null;
     private EntityManagerFactory entityManagerFactory;
 
-    private static TmetadataImpl readMetadata(String pid)
+    /**
+     * Reads metadata for the service pid
+     * 
+     * @param pid
+     * @return
+     * @throws IOException
+     * @throws Exception
+     * @throws XMLStreamException
+     * @throws FactoryConfigurationError
+     */
+    private static KapuaTmetadata readMetadata(String pid)
         throws IOException, Exception, XMLStreamException, FactoryConfigurationError
     {
-        TmetadataImpl metaData = null;
+        KapuaTmetadata metaData = null;
         StringBuilder sbMetatypeXmlName = new StringBuilder();
         sbMetatypeXmlName.append("META-INF/metatypes/").append(pid).append(".xml");
 
@@ -63,11 +79,19 @@ public abstract class AbstractKapuaConfigurableService implements KapuaConfigura
         URL metatypeXmlURL = ResourceUtils.getResource(metatypeXmlName);
         String metatypeXml = ResourceUtils.readResource(metatypeXmlURL);
         if (metatypeXml != null) {
-            metaData = XmlUtil.unmarshal(metatypeXml, TmetadataImpl.class);
+            metaData = XmlUtil.unmarshal(metatypeXml, KapuaTmetadata.class);
         }
         return metaData;
     }
 
+    /**
+     * Validate configuration
+     * 
+     * @param pid
+     * @param ocd
+     * @param updatedProps
+     * @throws KapuaException
+     */
     private static void validateConfigurations(String pid, KapuaTocd ocd, Map<String, Object> updatedProps)
         throws KapuaException
     {
@@ -127,6 +151,12 @@ public abstract class AbstractKapuaConfigurableService implements KapuaConfigura
         }
     }
 
+    /**
+     * Convert the properties map to {@link Properties}
+     * 
+     * @param values
+     * @return
+     */
     private static Properties toProperties(Map<String, Object> values)
     {
         Properties props = new Properties();
@@ -136,6 +166,14 @@ public abstract class AbstractKapuaConfigurableService implements KapuaConfigura
         return props;
     }
     
+    /**
+     * Convert the {@link Properties} to a properties map
+     * 
+     * @param ocd
+     * @param props
+     * @return
+     * @throws KapuaException
+     */
     private static Map<String, Object> toValues(KapuaTocd ocd, Properties props) throws KapuaException
     {
         List<KapuaTad> ads = ocd.getAD();
@@ -150,6 +188,14 @@ public abstract class AbstractKapuaConfigurableService implements KapuaConfigura
         return values;
     }
 
+    /**
+     * Create the service configuration entity
+     * 
+     * @param em
+     * @param serviceConfig
+     * @return
+     * @throws KapuaException
+     */
     private ServiceConfig create(EntityManager em, ServiceConfig serviceConfig)
         throws KapuaException
     {
@@ -172,6 +218,14 @@ public abstract class AbstractKapuaConfigurableService implements KapuaConfigura
         
     }
     
+    /**
+     * Update the service configuration entity
+     * 
+     * @param em
+     * @param serviceConfig
+     * @return
+     * @throws KapuaException
+     */
     private ServiceConfig update(EntityManager em, ServiceConfig serviceConfig)
         throws KapuaException
     {
@@ -199,7 +253,7 @@ public abstract class AbstractKapuaConfigurableService implements KapuaConfigura
     }
     
     /**
-     * Protected constructor
+     * Constructor
      * 
      * @param pid
      * @param domain
@@ -224,7 +278,7 @@ public abstract class AbstractKapuaConfigurableService implements KapuaConfigura
         authorizationService.checkPermission(permissionFactory.newPermission(domain, Actions.read, scopeId));
 
         try {
-            TmetadataImpl metadata = readMetadata(this.pid);
+            KapuaTmetadata metadata = readMetadata(this.pid);
             if (metadata.getOCD() != null && metadata.getOCD().size() > 0) {
                 for (KapuaTocd ocd : metadata.getOCD()) {
                     if (ocd.getId() != null && ocd.getId().equals(pid)) {

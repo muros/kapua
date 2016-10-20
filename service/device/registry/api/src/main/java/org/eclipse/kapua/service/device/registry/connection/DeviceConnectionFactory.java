@@ -20,4 +20,7 @@ public interface DeviceConnectionFactory extends KapuaObjectFactory
     public DeviceConnectionCreator newCreator(KapuaId scopeId);
 
     public DeviceConnectionQuery newQuery(KapuaId scopeId);
+
+    public DeviceConnectionSummary newConnectionSummary();
+
 }
