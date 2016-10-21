@@ -138,7 +138,6 @@
         <dependency>
             <groupId>javax.validation</groupId>
             <artifactId>validation-api</artifactId>
-            <version>1.1.0.Final</version>
         </dependency>
         <dependency>
             <!-- File upload utility classes -->
@@ -212,6 +211,10 @@
             <artifactId>jetty-util</artifactId>
             <version>6.1.26</version>
         </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -253,7 +256,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>2.10</version>
                 <executions>
                     <execution>
                         <id>Create gxt resources</id>
@@ -279,7 +281,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>2.10</version>
                 <executions>
                     <execution>
                         <id>Create openlayers resources</id>

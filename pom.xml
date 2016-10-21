@@ -44,13 +44,14 @@
         <protobuf.version>2.6.1</protobuf.version>
         <slf4j.version>1.7.2</slf4j.version>
         <shiro.version>1.2.3</shiro.version>
-        
+        <validation-api.version>1.1.0.Final</validation-api.version>
+
         <!-- Plugins versions -->
         <maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
-        
+        <maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
         <jacoco.version>0.7.7.201606060606</jacoco.version>
         <surefire.version>2.12.4</surefire.version>
-        
+
         <!-- -->
         <!-- Database configuration for local installs and tests -->
         <!-- Database host address is the one exported by the dev-tools/src/vagrant/Vagrantfile  -->        
@@ -71,6 +72,11 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${maven-compiler-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>${maven-dependency-plugin.version}</version>
                 </plugin>
 			    <plugin>
         			<groupId>org.codehaus.mojo</groupId>
@@ -474,6 +480,11 @@
                 <groupId>commons-configuration</groupId>
                 <artifactId>commons-configuration</artifactId>
                 <version>${commons-configuration.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.validation</groupId>
+                <artifactId>validation-api</artifactId>
+                <version>${validation-api.version}</version>
             </dependency>
             <dependency>
                 <groupId>joda-time</groupId>
