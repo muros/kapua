@@ -31,6 +31,7 @@ import org.eclipse.kapua.test.annotations.TestCase;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class UserServiceTest extends KapuaTest {
@@ -60,6 +61,7 @@ public class UserServiceTest extends KapuaTest {
         scriptSession((AbstractEntityManagerFactory) UserEntityManagerFactory.getInstance(), DROP_FILTER);
     }
 
+    @Ignore
     @Test
     @TestCase(caseId = "KAPUA_0001")
     public void createUser() throws Exception {
@@ -84,6 +86,7 @@ public class UserServiceTest extends KapuaTest {
         assertEquals(UserStatus.ENABLED, user.getStatus());
     }
 
+    @Ignore
     @Test
     @TestCase(caseId = "KAPUA_0002")
     public void updateUser() throws Exception {
@@ -101,6 +104,7 @@ public class UserServiceTest extends KapuaTest {
         assertTrue(updatedUser.getModifiedOn().after(userToBeUpdated.getModifiedOn()));
     }
 
+    @Ignore
     @Test
     @TestCase(caseId = "KAPUA_0003")
     public void deleteUser() throws Exception {
@@ -114,6 +118,7 @@ public class UserServiceTest extends KapuaTest {
         assertNull(deletedUser);
     }
 
+    @Ignore
     @Test
     @TestCase(caseId = "KAPUA_0004")
     public void queryUser() throws Exception {
@@ -128,6 +133,7 @@ public class UserServiceTest extends KapuaTest {
         assertEquals(1, queryResult.getSize());
     }
 
+    @Ignore
     @Test
     @TestCase(caseId = "KAPUA_0005")
     public void countUser() throws Exception {
@@ -142,6 +148,7 @@ public class UserServiceTest extends KapuaTest {
         assertEquals(1, userCnt);
     }
 
+    @Ignore
     @Test(expected = KapuaException.class)
     @TestCase(caseId = "KAPUA_0006")
     public void createUserThatExists() throws Exception {
@@ -152,6 +159,7 @@ public class UserServiceTest extends KapuaTest {
         userService.create(userCreator);
     }
 
+    @Ignore
     @Test(expected = KapuaException.class)
     @TestCase(caseId = "KAPUA_0007")
     public void updateNonExistentUser() throws Exception {
@@ -161,6 +169,7 @@ public class UserServiceTest extends KapuaTest {
         userService.update(user);
     }
 
+    @Ignore
     @Test(expected = KapuaException.class)
     @TestCase(caseId = "KAPUA_0008")
     public void deleteNonExistentUser() throws Exception {
@@ -170,6 +179,7 @@ public class UserServiceTest extends KapuaTest {
         userService.delete(user);
     }
 
+    @Ignore
     @Test
     @TestCase(caseId = "KAPUA_0009")
     public void findNonExistentUser() throws Exception {
@@ -179,6 +189,7 @@ public class UserServiceTest extends KapuaTest {
 
     }
 
+    @Ignore
     @Test
     @TestCase(caseId = "KAPUA_0010")
     public void findNonExistentUserByName() throws Exception {
@@ -187,6 +198,7 @@ public class UserServiceTest extends KapuaTest {
         assertNull(user);
     }
 
+    @Ignore
     @Test(expected = KapuaException.class)
     @TestCase(caseId = "KAPUA_0011")
     public void deleteSystemUser() throws Exception {
@@ -199,6 +211,7 @@ public class UserServiceTest extends KapuaTest {
         assertNotNull(sysUser);
     }
 
+    @Ignore
     @Test
     @TestCase(caseId = "KAPUA_0013")
     public void createMultipleUsers() throws Exception {
