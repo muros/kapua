@@ -1,3 +1,15 @@
+/*******************************************************************************
+ * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *     Eurotech
+ *
+ *******************************************************************************/
 package org.eclipse.kapua.service.user.internal;
 
 import static org.mockito.Matchers.any;
@@ -37,15 +49,28 @@ import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 
+/**
+ * Implementation of Gherkin steps used in UserService.feature scenarios.
+ * 
+ * MockedLocator is used for Location Service.
+ * Mockito is used to mock other services that UserService is dependent on.
+ * Dependent services are:
+ * - Authorization Service
+ * -
+ * 
+ *
+ */
 public class UserServiceSteps extends KapuaTest {
 
-    UserService userService = null; // KapuaLocator.getInstance().getService(UserService.class);
+    /** User service is mocked in beforeScenario() */
+    UserService userService = null;
 
     public static String DEFAULT_FILTER = "usr_*.sql";
     public static String DROP_FILTER = "usr_*_drop.sql";
 
     // scopeId is different for each test method so that data does not have to be cleared
-    final KapuaEid scopeId = new KapuaEid(BigInteger.valueOf(random.nextLong()));
+    // TODO remove and create scope id for each case
+    // final KapuaEid scopeId = new KapuaEid(BigInteger.valueOf(random.nextLong()));
 
     UserCreator userCreator;
 
@@ -68,24 +93,26 @@ public class UserServiceSteps extends KapuaTest {
         enableH2Connection();
         scriptSession((AbstractEntityManagerFactory) UserEntityManagerFactory.getInstance(), DEFAULT_FILTER);
 
-        // Set real UserService implementation
+        // Inject actual implementation of UserService
         userService = new UserServiceImpl();
         MockedLocator mockLocator = (MockedLocator) locator;
         mockLocator.setMockedService(org.eclipse.kapua.service.user.UserService.class, userService);
 
-        AuthenticationService mockedAuthentication = mock(AuthenticationService.class);
-        mockLocator.setMockedService(org.eclipse.kapua.service.authentication.AuthenticationService.class, mockedAuthentication);
-
+        // Inject mocked Authorization Service method checkPermission
         AuthorizationService mockedAuthorization = mock(AuthorizationService.class);
         Mockito.doNothing().when(mockedAuthorization).checkPermission(any(Permission.class));
         mockLocator.setMockedService(org.eclipse.kapua.service.authorization.AuthorizationService.class, mockedAuthorization);
 
+        // Inject mocked Permission Factory
         PermissionFactory mockedPermissionFactory = mock(PermissionFactory.class);
         mockLocator.setMockedFactory(org.eclipse.kapua.service.authorization.permission.PermissionFactory.class, mockedPermissionFactory);
 
+        // IdGenerator Service
         IdGeneratorService idGenerator = new IdGeneratorServiceImpl();
         mockLocator.setMockedService(org.eclipse.kapua.service.generator.id.IdGeneratorService.class, idGenerator);
 
+        // Create KapuaSession using KapuaSecurtiyUtils and kapua-sys user as logged in user.
+        // All operations on database are performed using system user.
         User user = userService.findByName("kapua-sys");
         KapuaSession kapuaSession = new KapuaSession(null, null, user.getScopeId(), user.getId(), user.getName());
         KapuaSecurityUtils.setSession(kapuaSession);
@@ -102,14 +129,15 @@ public class UserServiceSteps extends KapuaTest {
     public UserServiceSteps() {
     }
 
-    @Given("^User with name \"(.*)\"$")
-    public void crateUserWithName(String userName) {
+    @Given("^User with name \"(.*)\" in scope with id (\\d+)$")
+    public void crateUserWithName(String userName, int scopeId) {
         long now = (new Date()).getTime();
         String username = userName;
         String userEmail = MessageFormat.format("testuser_{0,number,#}@organization.com", now);
         String displayName = MessageFormat.format("User Display Name {0}", now);
+        KapuaEid scpId = new KapuaEid(BigInteger.valueOf(scopeId));
 
-        userCreator = new UserFactoryImpl().newCreator(scopeId, username);
+        userCreator = new UserFactoryImpl().newCreator(scpId, username);
 
         userCreator.setDisplayName(displayName);
         userCreator.setEmail(userEmail);
@@ -138,14 +166,17 @@ public class UserServiceSteps extends KapuaTest {
         }
     }
 
+    @When("^I search for user with name \"(.*)\"$")
+    public void searchUserWithName(String userName) throws Exception {
+        user = userService.findByName(userName);
+    }
+
     @Then("^I find user with name \"(.*)\"$")
     public void findUserWithName(String userName) throws Exception {
-        user = userService.find(user.getScopeId(), user.getId());
-
         assertNotNull(user.getId());
         assertNotNull(user.getId().getId());
         assertTrue(user.getOptlock() >= 0);
-        assertEquals(scopeId, user.getScopeId());
+        assertNotNull(user.getScopeId());
         assertEquals(userName, user.getName());
         assertNotNull(user.getCreatedOn());
         assertNotNull(user.getCreatedBy());
@@ -159,7 +190,7 @@ public class UserServiceSteps extends KapuaTest {
 
     @Then("^I don't find user with name \"(.*)\"$")
     public void dontFindUserWithName(String userName) throws Exception {
-        user = userService.find(user.getScopeId(), user.getId());
+        user = userService.findByName(userName);
 
         assertNull(user);
     }
@@ -171,21 +202,25 @@ public class UserServiceSteps extends KapuaTest {
     }
 
     @When("^I search for user with id (\\d+) in scope with id (\\d+)$")
-    public void dontFindUserWithName(int userId, int scopeId) throws Exception {
+    public void searchUserWithIdAndScopeId(int userId, int scopeId) throws Exception {
         KapuaEid scpId = new KapuaEid(BigInteger.valueOf(scopeId));
         KapuaEid usrId = new KapuaEid(BigInteger.valueOf(userId));
         user = userService.find(scpId, usrId);
     }
 
-    @When("^I query for users in scope$")
-    public void queryForUsers() throws Exception {
-        KapuaQuery<User> query = new UserFactoryImpl().newQuery(scopeId);
+    @When("^I query for users in scope with id (\\d+)$")
+    public void queryForUsers(int scopeId) throws Exception {
+        KapuaEid scpId = new KapuaEid(BigInteger.valueOf(scopeId));
+
+        KapuaQuery<User> query = new UserFactoryImpl().newQuery(scpId);
         queryResult = userService.query(query);
     }
 
-    @When("^I count for users in scope$")
-    public void countForUsers() throws Exception {
-        KapuaQuery<User> query = new UserFactoryImpl().newQuery(scopeId);
+    @When("^I count for users in scope with id (\\d+)$")
+    public void countForUsers(int scopeId) throws Exception {
+        KapuaEid scpId = new KapuaEid(BigInteger.valueOf(scopeId));
+
+        KapuaQuery<User> query = new UserFactoryImpl().newQuery(scpId);
         userCnt = userService.count(query);
     }
 
@@ -201,9 +236,9 @@ public class UserServiceSteps extends KapuaTest {
         assertEquals(cnt, userCnt);
     }
 
-    @Then("^I count single user as query result list$")
-    public void countUserQuery() {
-        assertEquals(1, queryResult.getSize());
+    @Then("^I count (\\d+) (?:user|users) as query result list$")
+    public void countUserQuery(int cnt) {
+        assertEquals(cnt, queryResult.getSize());
     }
 
     @Then("^I create same user$")
@@ -224,7 +259,7 @@ public class UserServiceSteps extends KapuaTest {
 
     @Given("^User that doesn't exist$")
     public void createNonexistentUser() {
-        user = createUserInstance();
+        user = createUserInstance(3234123, 1354133);
     }
 
     @When("^I update nonexistent user$")
@@ -245,18 +280,13 @@ public class UserServiceSteps extends KapuaTest {
         }
     }
 
-    @When("^I search for user with name \"(.*)\"$")
-    public void findUserByName(String userName) throws Exception {
-        user = userService.findByName(userName);
-    }
-
     @Given("^I have following users$")
     public void followingUsers(DataTable table) throws Exception {
         for (Map<String, String> map : table.asMaps(String.class, String.class)) {
             String username = map.get("username");
             String scopeId = map.get("scopeId");
             KapuaEid scpId = new KapuaEid(BigInteger.valueOf(Integer.valueOf(scopeId)));
-            
+
             UserCreator userCreator = userCreatorCreator(username, scpId);
             userService.create(userCreator);
         }
@@ -271,22 +301,24 @@ public class UserServiceSteps extends KapuaTest {
      * 
      * @return User instance
      */
-    private User createUserInstance() {
+    private User createUserInstance(int userId, int scopeId) {
         long now = (new Date()).getTime();
         String username = MessageFormat.format("aaa_test_username_{0,number,#}", now);
         String userEmail = MessageFormat.format("testuser_{0,number,#}@organization.com", now);
         String displayName = MessageFormat.format("User Display Name {0}", now);
+        KapuaEid usrId = new KapuaEid(BigInteger.valueOf(userId));
+        KapuaEid scpId = new KapuaEid(BigInteger.valueOf(scopeId));
 
-        User user = new UserImpl(scopeId, username);
+        User user = new UserImpl(scpId, username);
 
-        user.setId(scopeId);
+        user.setId(usrId);
         user.setName(username);
         user.setDisplayName(displayName);
         user.setEmail(userEmail);
 
         return user;
     }
-    
+
     /**
      * Create userCreator instance with quasi random data for user name,
      * email and display name.

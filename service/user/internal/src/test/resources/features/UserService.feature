@@ -6,8 +6,9 @@ Scenario: Creating user
   Create user with name kapua-user and persist it in database. Then try to
   find it.
 
-  Given User with name "kapua-user"
+  Given User with name "kapua-user" in scope with id 42
   When I create user
+    And I search for user with name "kapua-user"
   Then I find user with name "kapua-user"
 
 Scenario: Update user
@@ -16,7 +17,7 @@ Scenario: Update user
   this user to database. At the end check that user name is changed to 
   kapua-modified.
 
-  Given User with name "kapua-user"
+  Given User with name "kapua-user" in scope with id 42
   When I create user
     And I find user with name "kapua-user"
     And I change name to "kapua-modified"
@@ -26,7 +27,7 @@ Scenario: Delete user
   Create user with name kapua-user. Then delete this user and check it is
   deleted. This means that if trying to search user, no such user is found.
 
-  Given User with name "kapua-user"
+  Given User with name "kapua-user" in scope with id 42
   When I create user
     And I delete user
   Then I don't find user with name "kapua-user"
@@ -35,26 +36,26 @@ Scenario: Query user
   Create user with name kapua-user, than issue query for user based on scopeId.
   List of matching users should match single user.
 
-  Given User with name "kapua-user"
+  Given User with name "kapua-user" in scope with id 42
   When I create user
-    And I query for users in scope
-  Then I count single user as query result list
+    And I query for users in scope with id 42
+  Then I count 1 user as query result list
 
 Scenario: Count user
   Create user with name kapua-user, than issue count based on query that has
   scopeId specified. It is same as Query user, just that it only retrives count
   of results and not list of users. Count should match just one user.
 
-  Given User with name "kapua-user"
+  Given User with name "kapua-user" in scope with id 42
   When I create user
-    And I count for users in scope
+    And I count for users in scope with id 42
   Then I count 1 user
 
 Scenario: Create user that allready exist
   Create user wiht name kapua-user and than try to persiste it two times.
   KapuaException shuld be thrown in such scenario.
 
-  Given User with name "kapua-user"
+  Given User with name "kapua-user" in scope with id 42
   When I create user
     And I create same user
   Then I get Kapua exception
@@ -102,7 +103,7 @@ Scenario: Create multiple users
   that scopeId.
 
   Given I have following users
-    | username | scopeId |
+    | username | scopeId  |
     | kapua-u1 |    42    |
     | kapua-u2 |    42    |
     | kapua-u3 |    42    |
