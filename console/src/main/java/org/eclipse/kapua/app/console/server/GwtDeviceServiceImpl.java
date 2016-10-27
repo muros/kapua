@@ -14,9 +14,7 @@ package org.eclipse.kapua.app.console.server;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.kapua.app.console.server.util.KapuaExceptionHandler;
 import org.eclipse.kapua.app.console.setting.ConsoleSetting;
@@ -27,6 +25,7 @@ import org.eclipse.kapua.app.console.shared.model.GwtDevice.GwtDeviceCredentials
 import org.eclipse.kapua.app.console.shared.model.GwtDeviceCreator;
 import org.eclipse.kapua.app.console.shared.model.GwtDeviceEvent;
 import org.eclipse.kapua.app.console.shared.model.GwtDeviceQueryPredicates;
+import org.eclipse.kapua.app.console.shared.model.GwtDeviceQueryPredicates.GwtDeviceConnectionStatus;
 import org.eclipse.kapua.app.console.shared.model.GwtGroupedNVPair;
 import org.eclipse.kapua.app.console.shared.model.GwtXSRFToken;
 import org.eclipse.kapua.app.console.shared.service.GwtDeviceService;
@@ -37,6 +36,7 @@ import org.eclipse.kapua.commons.model.query.FieldSortCriteria.SortOrder;
 import org.eclipse.kapua.commons.model.query.predicate.AndPredicate;
 import org.eclipse.kapua.commons.model.query.predicate.AttributePredicate;
 import org.eclipse.kapua.locator.KapuaLocator;
+import org.eclipse.kapua.message.KapuaPosition;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.model.query.KapuaListResult;
 import org.eclipse.kapua.model.query.predicate.KapuaAndPredicate;
@@ -50,9 +50,6 @@ import org.eclipse.kapua.service.device.registry.DeviceQuery;
 import org.eclipse.kapua.service.device.registry.DeviceRegistryService;
 import org.eclipse.kapua.service.device.registry.DeviceStatus;
 import org.eclipse.kapua.service.device.registry.connection.DeviceConnection;
-import org.eclipse.kapua.service.device.registry.connection.DeviceConnectionFactory;
-import org.eclipse.kapua.service.device.registry.connection.DeviceConnectionPredicates;
-import org.eclipse.kapua.service.device.registry.connection.DeviceConnectionQuery;
 import org.eclipse.kapua.service.device.registry.connection.DeviceConnectionService;
 import org.eclipse.kapua.service.device.registry.connection.DeviceConnectionStatus;
 import org.eclipse.kapua.service.device.registry.event.DeviceEvent;
@@ -75,70 +72,14 @@ import com.extjs.gxt.ui.client.data.PagingLoadResult;
  * The server side implementation of the Device RPC service.
  * 
  */
-public class GwtDeviceServiceImpl extends KapuaRemoteServiceServlet implements GwtDeviceService
-{
+public class GwtDeviceServiceImpl extends KapuaRemoteServiceServlet implements GwtDeviceService {
 
     private static Logger logger = LoggerFactory.getLogger(GwtDeviceServiceImpl.class);
 
     private static final long serialVersionUID = -1391026997499175151L;
 
-    public long getNumOfDevices(String scopeIdString)
-        throws GwtKapuaException
-    {
-        KapuaLocator locator = KapuaLocator.getInstance();
-        DeviceRegistryService deviceRegistryService = locator.getService(DeviceRegistryService.class);
-        DeviceFactory deviceFactory = locator.getFactory(DeviceFactory.class);
-        try {
-            DeviceQuery query = deviceFactory.newQuery(KapuaEid.parseShortId(scopeIdString));
-            return deviceRegistryService.count(query);
-        }
-        catch (Throwable t) {
-            KapuaExceptionHandler.handle(t);
-            return 0;
-        }
-    }
-
-    public Map<String, Integer> getNumOfDevicesConnected(String scopeIdString)
-        throws GwtKapuaException
-    {
-        KapuaId scopeId = KapuaEid.parseShortId(scopeIdString);
-
-        Map<String, Integer> devicesStatus = new HashMap<String, Integer>();
-        KapuaLocator locator = KapuaLocator.getInstance();
-        DeviceConnectionService dcs = locator.getService(DeviceConnectionService.class);
-        DeviceConnectionFactory deviceConnectionFactory = locator.getFactory(DeviceConnectionFactory.class);
-        try {
-            DeviceConnectionQuery query = deviceConnectionFactory.newQuery(scopeId);
-
-            query.setPredicate(new AttributePredicate<DeviceConnectionStatus>(DeviceConnectionPredicates.CONNECTION_STATUS, DeviceConnectionStatus.CONNECTED));
-            int count = new Long(dcs.count(query)).intValue();
-            if (count > 0) {
-                devicesStatus.put("connected", count);
-            }
-
-            query.setPredicate(new AttributePredicate<DeviceConnectionStatus>(DeviceConnectionPredicates.CONNECTION_STATUS, DeviceConnectionStatus.DISCONNECTED));
-            count = new Long(dcs.count(query)).intValue();
-            if (count > 0) {
-                devicesStatus.put("disconnected", count);
-            }
-
-            query.setPredicate(new AttributePredicate<DeviceConnectionStatus>(DeviceConnectionPredicates.CONNECTION_STATUS, DeviceConnectionStatus.MISSING));
-            count = new Long(dcs.count(query)).intValue();
-            if (count > 0) {
-                devicesStatus.put("missing", count);
-            }
-
-        }
-        catch (Throwable t) {
-            KapuaExceptionHandler.handle(t);
-            return null;
-        }
-        return devicesStatus;
-    }
-
     public GwtDevice findDevice(String scopeIdString, String clientId)
-        throws GwtKapuaException
-    {
+            throws GwtKapuaException {
         GwtDevice gwtDevice = null;
         try {
             KapuaId scopeId = KapuaEid.parseShortId(scopeIdString);
@@ -148,16 +89,14 @@ public class GwtDeviceServiceImpl extends KapuaRemoteServiceServlet implements G
             Device device = deviceRegistryService.findByClientId(scopeId, clientId);
 
             gwtDevice = KapuaGwtConverter.convert(device);
-        }
-        catch (Throwable t) {
+        } catch (Throwable t) {
             KapuaExceptionHandler.handle(t);
         }
         return gwtDevice;
     }
 
     public ListLoadResult<GwtGroupedNVPair> findDeviceProfile(String scopeIdString, String clientId)
-        throws GwtKapuaException
-    {
+            throws GwtKapuaException {
         List<GwtGroupedNVPair> pairs = new ArrayList<GwtGroupedNVPair>();
         KapuaLocator locator = KapuaLocator.getInstance();
         DeviceRegistryService drs = locator.getService(DeviceRegistryService.class);
@@ -175,9 +114,10 @@ public class GwtDeviceServiceImpl extends KapuaRemoteServiceServlet implements G
                 DeviceConnectionStatus connectionStatus = null;
                 if (deviceConnection != null) {
                     connectionStatus = deviceConnection.getStatus();
-                }
-                else {
+                    pairs.add(new GwtGroupedNVPair("netInfo", "netConnIp", deviceConnection.getClientIp()));
+                } else {
                     connectionStatus = DeviceConnectionStatus.DISCONNECTED;
+                    pairs.add(new GwtGroupedNVPair("netInfo", "netConnIp", ""));
                 }
 
                 pairs.add(new GwtGroupedNVPair("devInfo", "devConnectionStatus", connectionStatus.toString()));
@@ -187,8 +127,7 @@ public class GwtDeviceServiceImpl extends KapuaRemoteServiceServlet implements G
                 pairs.add(new GwtGroupedNVPair("devInfo", "devLastEventType", lastEventType));
                 if (device.getLastEventOn() != null) {
                     pairs.add(new GwtGroupedNVPair("devInfo", "devLastEventOn", String.valueOf(device.getLastEventOn().getTime())));
-                }
-                else {
+                } else {
                     pairs.add(new GwtGroupedNVPair("devInfo", "devLastEventOn", null));
                 }
 
@@ -219,27 +158,47 @@ public class GwtDeviceServiceImpl extends KapuaRemoteServiceServlet implements G
 
                 pairs.add(new GwtGroupedNVPair("devJava", "devJvmVersion", device.getJvmVersion()));
 
-                pairs.add(new GwtGroupedNVPair("netInfo", "netConnIp", deviceConnection.getClientIp()));
+                // GPS infos retrieval
+                DeviceEventService deviceEventService = locator.getService(DeviceEventService.class);
+                DeviceEventFactory deviceEventFactory = locator.getFactory(DeviceEventFactory.class);
+                DeviceEventQuery eventQuery = deviceEventFactory.newQuery(device.getScopeId());
+                eventQuery.setLimit(1);
+                eventQuery.setSortCriteria(new FieldSortCriteria(DeviceEventPredicates.RECEIVED_ON, SortOrder.DESCENDING));
 
-                pairs.add(new GwtGroupedNVPair("gpsInfo", "gpsLat", String.valueOf(device.getGpsLatitude())));
-                pairs.add(new GwtGroupedNVPair("gpsInfo", "gpsLong", String.valueOf(device.getGpsLongitude())));
+                AndPredicate andPredicate = new AndPredicate();
+                andPredicate.and(new AttributePredicate<KapuaId>(DeviceEventPredicates.DEVICE_ID, device.getId()));
+                andPredicate.and(new AttributePredicate<String>(DeviceEventPredicates.EVENT_TYPE, "BIRTH"));
+
+                eventQuery.setPredicate(andPredicate);
+
+                KapuaListResult<DeviceEvent> events = deviceEventService.query(eventQuery);
+                if (!events.isEmpty()) {
+                    DeviceEvent lastEvent = events.getItem(0);
+                    KapuaPosition eventPosition = lastEvent.getPosition();
+
+                    if (eventPosition != null) {
+                        pairs.add(new GwtGroupedNVPair("gpsInfo", "gpsLat", String.valueOf(eventPosition.getLatitude())));
+                        pairs.add(new GwtGroupedNVPair("gpsInfo", "gpsLong", String.valueOf(eventPosition.getLongitude())));
+                    }
+                } else {
+                    pairs.add(new GwtGroupedNVPair("gpsInfo", "gpsLat", null));
+                    pairs.add(new GwtGroupedNVPair("gpsInfo", "gpsLong", null));
+                }
 
                 pairs.add(new GwtGroupedNVPair("modemInfo", "modemImei", device.getImei()));
                 pairs.add(new GwtGroupedNVPair("modemInfo", "modemImsi", device.getImsi()));
                 pairs.add(new GwtGroupedNVPair("modemInfo", "modemIccid", device.getIccid()));
             }
-        }
-        catch (Throwable t) {
+        } catch (Throwable t) {
             KapuaExceptionHandler.handle(t);
         }
         return new BaseListLoadResult<GwtGroupedNVPair>(pairs);
     }
 
     public PagingLoadResult<GwtDevice> findDevices(PagingLoadConfig loadConfig,
-                                                   String scopeIdString,
-                                                   GwtDeviceQueryPredicates predicates)
-        throws GwtKapuaException
-    {
+            String scopeIdString,
+            GwtDeviceQueryPredicates predicates)
+            throws GwtKapuaException {
         KapuaLocator locator = KapuaLocator.getInstance();
         DeviceRegistryService deviceRegistryService = locator.getService(DeviceRegistryService.class);
         DeviceFactory deviceFactory = locator.getFactory(DeviceFactory.class);
@@ -275,15 +234,12 @@ public class GwtDeviceServiceImpl extends KapuaRemoteServiceServlet implements G
                 }
                 if (predicates.getSortAttribute().equals(GwtDeviceQueryPredicates.GwtSortAttribute.CLIENT_ID.name())) {
                     deviceQuery.setSortCriteria(new FieldSortCriteria(DevicePredicates.CLIENT_ID, sortOrder));
-                }
-                else if (predicates.getSortAttribute().equals(GwtDeviceQueryPredicates.GwtSortAttribute.DISPLAY_NAME.name())) {
+                } else if (predicates.getSortAttribute().equals(GwtDeviceQueryPredicates.GwtSortAttribute.DISPLAY_NAME.name())) {
                     deviceQuery.setSortCriteria(new FieldSortCriteria(DevicePredicates.DISPLAY_NAME, sortOrder));
-                }
-                else if (predicates.getSortAttribute().equals(GwtDeviceQueryPredicates.GwtSortAttribute.LAST_EVENT_ON.name())) {
+                } else if (predicates.getSortAttribute().equals(GwtDeviceQueryPredicates.GwtSortAttribute.LAST_EVENT_ON.name())) {
                     deviceQuery.setSortCriteria(new FieldSortCriteria(DevicePredicates.LAST_EVENT_ON, sortOrder));
                 }
-            }
-            else {
+            } else {
                 deviceQuery.setSortCriteria(new FieldSortCriteria(DevicePredicates.CLIENT_ID, SortOrder.ASCENDING));
             }
 
@@ -296,24 +252,27 @@ public class GwtDeviceServiceImpl extends KapuaRemoteServiceServlet implements G
             DeviceEventService deviceEventService = locator.getService(DeviceEventService.class);
             DeviceEventFactory deviceEventFactory = locator.getFactory(DeviceEventFactory.class);
 
-            DeviceEventQuery eventQuery = deviceEventFactory.newQuery(deviceQuery.getScopeId());
-            eventQuery.setLimit(1);
-            eventQuery.setSortCriteria(new FieldSortCriteria(DeviceEventPredicates.RECEIVED_ON, SortOrder.DESCENDING));
-
             for (Device d : devices.getItems()) {
-                DeviceConnection deviceConnection = deviceConnectionService.findByClientId(d.getScopeId(),
-                                                                                           d.getClientId());
+                GwtDevice gwtDevice = KapuaGwtConverter.convert(d);
 
                 // Connection info
-                GwtDevice gwtDevice = KapuaGwtConverter.convert(d);
-                gwtDevice.setConnectionIp(deviceConnection.getClientIp());
-                gwtDevice.setGwtDeviceConnectionStatus(deviceConnection.getStatus().name());
-                gwtDevice.setLastEventOn(deviceConnection.getModifiedOn());
+                gwtDevice.setGwtDeviceConnectionStatus(GwtDeviceConnectionStatus.DISCONNECTED.name());
+                if (d.getConnectionId() != null) {
+                    DeviceConnection deviceConnection = deviceConnectionService.find(d.getScopeId(), d.getConnectionId());
+                    if (deviceConnection != null) {
+                        gwtDevice.setConnectionIp(deviceConnection.getClientIp());
+                        gwtDevice.setGwtDeviceConnectionStatus(deviceConnection.getStatus().name());
+                        gwtDevice.setLastEventOn(deviceConnection.getModifiedOn());
+                        gwtDevice.setLastEventType(deviceConnection.getStatus().name());
+                    }
+                }
 
                 // Event infos
+                DeviceEventQuery eventQuery = deviceEventFactory.newQuery(deviceQuery.getScopeId());
+                eventQuery.setLimit(1);
+                eventQuery.setSortCriteria(new FieldSortCriteria(DeviceEventPredicates.RECEIVED_ON, SortOrder.DESCENDING));
                 eventQuery.setPredicate(new AttributePredicate<KapuaId>(DeviceEventPredicates.DEVICE_ID, d.getId()));
                 KapuaListResult<DeviceEvent> events = deviceEventService.query(eventQuery);
-
                 if (!events.isEmpty()) {
                     DeviceEvent lastEvent = events.getItem(0);
 
@@ -324,8 +283,7 @@ public class GwtDeviceServiceImpl extends KapuaRemoteServiceServlet implements G
                 gwtDevices.add(gwtDevice);
             }
 
-        }
-        catch (Throwable t) {
+        } catch (Throwable t) {
             KapuaExceptionHandler.handle(t);
         }
 
@@ -337,8 +295,7 @@ public class GwtDeviceServiceImpl extends KapuaRemoteServiceServlet implements G
     }
 
     public GwtDevice createDevice(GwtXSRFToken xsrfToken, GwtDeviceCreator gwtDeviceCreator)
-        throws GwtKapuaException
-    {
+            throws GwtKapuaException {
         //
         // Checking validity of the given XSRF Token
         checkXSRFToken(xsrfToken);
@@ -351,8 +308,7 @@ public class GwtDeviceServiceImpl extends KapuaRemoteServiceServlet implements G
         try {
             KapuaId scopeId = KapuaEid.parseShortId(gwtDeviceCreator.getScopeId());
 
-            DeviceCreator deviceCreator = deviceFactory.newCreator(scopeId,
-                                                                   gwtDeviceCreator.getClientId());
+            DeviceCreator deviceCreator = deviceFactory.newCreator(scopeId, gwtDeviceCreator.getClientId());
             deviceCreator.setDisplayName(gwtDeviceCreator.getDisplayName());
 
             deviceCreator.setCredentialsMode(DeviceCredentialsMode.valueOf(gwtDeviceCreator.getGwtCredentialsTight().name()));
@@ -366,8 +322,7 @@ public class GwtDeviceServiceImpl extends KapuaRemoteServiceServlet implements G
             Device device = deviceRegistryService.create(deviceCreator);
 
             gwtDevice = KapuaGwtConverter.convert(device);
-        }
-        catch (Throwable t) {
+        } catch (Throwable t) {
             KapuaExceptionHandler.handle(t);
         }
 
@@ -375,8 +330,7 @@ public class GwtDeviceServiceImpl extends KapuaRemoteServiceServlet implements G
     }
 
     public GwtDevice updateAttributes(GwtXSRFToken xsrfToken, GwtDevice gwtDevice)
-        throws GwtKapuaException
-    {
+            throws GwtKapuaException {
         //
         // Checking validity of the given XSRF Token
         checkXSRFToken(xsrfToken);
@@ -419,16 +373,14 @@ public class GwtDeviceServiceImpl extends KapuaRemoteServiceServlet implements G
             // Convert to gwt object
             gwtDeviceUpdated = KapuaGwtConverter.convert(device);
 
-        }
-        catch (Throwable t) {
+        } catch (Throwable t) {
             KapuaExceptionHandler.handle(t);
         }
         return gwtDeviceUpdated;
     }
 
     public void deleteDevice(GwtXSRFToken xsrfToken, String scopeIdString, String clientId)
-        throws GwtKapuaException
-    {
+            throws GwtKapuaException {
         //
         // Checking validity of the given XSRF Token
         checkXSRFToken(xsrfToken);
@@ -440,18 +392,16 @@ public class GwtDeviceServiceImpl extends KapuaRemoteServiceServlet implements G
             DeviceRegistryService drs = locator.getService(DeviceRegistryService.class);
             Device d = drs.findByClientId(scopeId, clientId);
             drs.delete(d.getScopeId(), d.getId());
-        }
-        catch (Throwable t) {
+        } catch (Throwable t) {
             KapuaExceptionHandler.handle(t);
         }
     }
 
     public PagingLoadResult<GwtDeviceEvent> findDeviceEvents(PagingLoadConfig loadConfig,
-                                                             GwtDevice gwtDevice,
-                                                             Date startDate,
-                                                             Date endDate)
-        throws GwtKapuaException
-    {
+            GwtDevice gwtDevice,
+            Date startDate,
+            Date endDate)
+            throws GwtKapuaException {
         ArrayList<GwtDeviceEvent> gwtDeviceEvents = new ArrayList<GwtDeviceEvent>();
         BasePagingLoadResult<GwtDeviceEvent> gwtResults = null;
 
@@ -487,15 +437,13 @@ public class GwtDeviceServiceImpl extends KapuaRemoteServiceServlet implements G
             gwtResults.setOffset(loadConfig.getOffset());
             gwtResults.setTotalLength((int) des.count(query));
 
-        }
-        catch (Throwable t) {
+        } catch (Throwable t) {
             KapuaExceptionHandler.handle(t);
         }
         return gwtResults;
     }
 
-    public String getTileEndpoint() throws GwtKapuaException
-    {
+    public String getTileEndpoint() throws GwtKapuaException {
         return ConsoleSetting.getInstance().getString(ConsoleSettingKeys.DEVICE_MAP_TILE_URI);
     }
 

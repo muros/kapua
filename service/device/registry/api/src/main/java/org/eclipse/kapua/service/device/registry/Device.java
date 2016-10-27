@@ -30,32 +30,31 @@ import org.eclipse.kapua.model.id.KapuaId;
 @XmlRootElement(name = "device")
 @XmlAccessorType(XmlAccessType.PROPERTY)
 @XmlType(propOrder = { "clientId",
-                       "status",
-                       "displayName",
-                       "lastEventOn",
-                       "lastEventType",
-                       "serialNumber",
-                       "modelId",
-                       "imei",
-                       "imsi",
-                       "iccid",
-                       "biosVersion",
-                       "firmwareVersion",
-                       "osVersion",
-                       "jvmVersion",
-                       "osgiFrameworkVersion",
-                       "applicationFrameworkVersion",
-                       "applicationIdentifiers",
-                       "acceptEncoding",
-                       "gpsLongitude",
-                       "gpsLatitude",
-                       "customAttribute1",
-                       "customAttribute2",
-                       "customAttribute3",
-                       "customAttribute4",
-                       "customAttribute5",
-                       "credentialsMode",
-                       "preferredUserId"
+        "connectionId",
+        "status",
+        "displayName",
+        "lastEventOn",
+        "lastEventType",
+        "serialNumber",
+        "modelId",
+        "imei",
+        "imsi",
+        "iccid",
+        "biosVersion",
+        "firmwareVersion",
+        "osVersion",
+        "jvmVersion",
+        "osgiFrameworkVersion",
+        "applicationFrameworkVersion",
+        "applicationIdentifiers",
+        "acceptEncoding",
+        "customAttribute1",
+        "customAttribute2",
+        "customAttribute3",
+        "customAttribute4",
+        "customAttribute5",
+        "credentialsMode",
+        "preferredUserId"
         // // derived attributes
         // "uptime",
         // "modelName",
@@ -69,15 +68,12 @@ import org.eclipse.kapua.model.id.KapuaId;
         // "osgiFramework",
         // "connectionInterface",
         // "gpsAltitude"
-},
-factoryClass = DeviceXmlRegistry.class, 
-factoryMethod = "newDevice")
-public interface Device extends KapuaUpdatableEntity
-{
+}, factoryClass = DeviceXmlRegistry.class, factoryMethod = "newDevice")
+public interface Device extends KapuaUpdatableEntity {
+
     public static final String TYPE = "dvce";
 
-    default public String getType()
-    {
+    default public String getType() {
         return TYPE;
     }
 
@@ -85,6 +81,11 @@ public interface Device extends KapuaUpdatableEntity
     public String getClientId();
 
     public void setClientId(String clientId);
+
+    @XmlElement(name = "connectionId")
+    public KapuaId getConnectionId();
+
+    public void setConnectionId(KapuaId connectionId);
 
     @XmlElement(name = "status")
     public DeviceStatus getStatus();
@@ -170,16 +171,6 @@ public interface Device extends KapuaUpdatableEntity
     public String getAcceptEncoding();
 
     public void setAcceptEncoding(String acceptEncoding);
-
-    @XmlElement(name = "gpsLongitude")
-    public Double getGpsLongitude();
-
-    public void setGpsLongitude(Double gpsLongitude);
-
-    @XmlElement(name = "gpsLatitude")
-    public Double getGpsLatitude();
-
-    public void setGpsLatitude(Double gpsLatitude);
 
     @XmlElement(name = "customAttribute1")
     public String getCustomAttribute1();
