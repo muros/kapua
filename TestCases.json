@@ -1,0 +1,115 @@
+{
+"Suite" : "KAPUA v1 Test Cases"
+"TestCases" : [
+  {
+    "CaseId" : "KAPUA_0001",
+    "RequrementId" : "",
+    "Type" : "unit test",
+    "Unit" : "Service",
+    "Component" : "UserService",
+    "ShortDescription" : "Creating user in DB.",
+    "Scenario" : "Create user in DB. After creation check if exists and fields are populated, are not null. Contents of fields is not checked."
+  },
+  {
+    "CaseId" : "KAPUA_0002",
+    "RequrementId" : "",
+    "Type" : "unit test",
+    "Unit" : "Service",
+    "Component" : "UserService",
+    "ShortDescription" : "Update user in DB.",
+    "Scenario" : "Create user in DB. Find user by its id and then update that same user. Update users display name. Update operation returns updated user, use this user object to check if display name of user was changed. Also check that optLock field has increased and modification time was icreased."
+  },
+  {
+    "CaseId" : "KAPUA_0003",
+    "RequrementId" : "",
+    "Type" : "unit test",
+    "Unit" : "Service",
+    "Component" : "UserService",
+    "ShortDescription" : "Delete user in DB.",
+    "Scenario" : "Create user in DB. Delete that same user by specifying user by object returned at his
+    creation. After deletion try to find user by its original created id. User shoul not be found and null user object should be returned."
+  },
+  {
+    "CaseId" : "KAPUA_0004",
+    "RequrementId" : "",
+    "Type" : "unit test",
+    "Unit" : "Service",
+    "Component" : "UserService",
+    "ShortDescription" : "Find all users",
+    "Scenario" : "Create user in DB. Using UserFactoryImpl create query to select all users in defined scope. This is only one user for this use case. Execute query and assert that number of resulting users is 1."
+  },
+  {
+    "CaseId" : "KAPUA_0005",
+    "RequrementId" : "",
+    "Type" : "unit test",
+    "Unit" : "Service",
+    "Component" : "UserService",
+    "ShortDescription" : "Count all users",
+    "Scenario" : "Create user in DB. Using UserFactoryImpl create query to select all users in defined scope. This is only one user for this use case. Execute count and assert that number of resulting users is 1."
+  }
+  ,
+  {
+    "CaseId" : "KAPUA_0006",
+    "RequrementId" : "",
+    "Type" : "unit test",
+    "Unit" : "Service",
+    "Component" : "UserService",
+    "ShortDescription" : "Duplicate user creation",
+    "Scenario" : "Create user in DB. Using same user create it again. Check that KapuaException is thrown."
+  },
+  {
+    "CaseId" : "KAPUA_0007",
+    "RequrementId" : "",
+    "Type" : "unit test",
+    "Unit" : "Service",
+    "Component" : "UserService",
+    "ShortDescription" : "Update non-existing user",
+    "Scenario" : "Create User object using UserImpl, not factory. This user is non-existent in database. Using this user object do update using UserService. Check that update fails with KapuaException."
+  },
+  {
+    "CaseId" : "KAPUA_0008",
+    "RequrementId" : "",
+    "Type" : "unit test",
+    "Unit" : "Service",
+    "Component" : "UserService",
+    "ShortDescription" : "Delete non-existing user",
+    "Scenario" : "Create User object using UserImpl, not factory. This user is non-existent in database. Using this user object do delete using UserService. Check that Delete fails with KapuaException."
+  },
+  {
+    "CaseId" : "KAPUA_0009",
+    "RequrementId" : "",
+    "Type" : "unit test",
+    "Unit" : "Service",
+    "Component" : "UserService",
+    "ShortDescription" : "Find for non-existing user",
+    "Scenario" : "Search for non-existing user using find method on User Service. For search creteria use scopeId for scope and user. As no user is present this is ok for search parameters. User object that is returned as result should be null."
+  },
+  {
+    "CaseId" : "KAPUA_0010",
+    "RequrementId" : "",
+    "Type" : "unit test",
+    "Unit" : "Service",
+    "Component" : "UserService",
+    "ShortDescription" : "Find by name for non-existing user",
+    "Scenario" : "Search for non-existing user using findByName method on User Service. Any user name can be used as no user is inserted in database. User object that is returned as result should be null."
+  },
+  {
+    "CaseId" : "KAPUA_0011",
+    "RequrementId" : "",
+    "Type" : "unit test",
+    "Unit" : "Service",
+    "Component" : "UserService",
+    "ShortDescription" : "Delete system user",
+    "Scenario" : "Try to delete kapua-sys user that is default system user. Check that deletion fails with KapuaException."
+  },
+  {
+    "CaseId" : "KAPUA_0012",
+    "RequrementId" : "",
+    "Type" : "unit test",
+    "Unit" : "Service",
+    "Component" : "UserService",
+    "ShortDescription" : "Get instance of User settings",
+    "Scenario" : "Positive scenario for access to kapua-user-setting.properties file and settings saved in that file. Issue is if file does not exist or value is not set. Problematic testing of these two scenarios."
+  }
+]
+}
