@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.Map;
 
 import org.eclipse.kapua.KapuaException;
+import org.eclipse.kapua.commons.configuration.KapuaConfigurableServiceSchemaUtils;
 import org.eclipse.kapua.commons.configuration.metatype.KapuaMetatypeFactoryImpl;
 import org.eclipse.kapua.commons.jpa.AbstractEntityManagerFactory;
 import org.eclipse.kapua.commons.model.id.KapuaEid;
@@ -29,6 +30,7 @@ import org.eclipse.kapua.commons.security.KapuaSession;
 import org.eclipse.kapua.commons.util.xml.XmlUtil;
 import org.eclipse.kapua.model.config.metatype.KapuaMetatypeFactory;
 import org.eclipse.kapua.model.config.metatype.KapuaTocd;
+import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.model.query.KapuaQuery;
 import org.eclipse.kapua.service.authentication.AuthenticationService;
 import org.eclipse.kapua.service.authorization.AuthorizationService;
@@ -69,26 +71,36 @@ public class UserServiceSteps extends KapuaTest {
     /** User service is mocked in beforeScenario() */
     UserService userService = null;
 
+    public static String DEFAULT_COMMONS_PATH = "../../../commons/";
     public static String DEFAULT_FILTER = "usr_*.sql";
     public static String DROP_FILTER = "usr_*_drop.sql";
 
-    // scopeId is different for each test method so that data does not have to be cleared
-    // TODO remove and create scope id for each case
-    // final KapuaEid scopeId = new KapuaEid(BigInteger.valueOf(random.nextLong()));
-
+    /** User creator object used for creating new users. */
     UserCreator userCreator;
 
+    /** Simple user object used for creation of check of returned user object. */
     User user;
 
+    /** Result of user qurey in last executed step. */
     UserListResult queryResult;
 
+    /** Count of users in last executed step. */
     long userCnt;
 
+    /** Check if exception was fired in step. */
     boolean isException;
 
+    /** Currently executing scenario. */
     Scenario scenario;
 
+    /** XML of metadata. */
     KapuaTocd metadata;
+
+    /** Metadata boolean value. */
+    Boolean boolVal = null;
+    
+    /** Metadata integer value. */
+    Integer intVal = null;
 
     @Before
     public void beforeScenario(Scenario scenario) throws Exception {
@@ -96,8 +108,12 @@ public class UserServiceSteps extends KapuaTest {
         this.scenario = scenario;
         this.isException = false;
 
+        // Create User Service tables
         enableH2Connection();
         scriptSession((AbstractEntityManagerFactory) UserEntityManagerFactory.getInstance(), DEFAULT_FILTER);
+
+        // Create system configuration tables
+        KapuaConfigurableServiceSchemaUtils.createSchemaObjects(DEFAULT_COMMONS_PATH);
 
         // Inject actual implementation of UserService
         userService = new UserServiceImpl();
@@ -134,7 +150,11 @@ public class UserServiceSteps extends KapuaTest {
     @After
     public void afterScenario() throws Exception {
 
+        // Drop User Service tables
         scriptSession((AbstractEntityManagerFactory) UserEntityManagerFactory.getInstance(), DROP_FILTER);
+
+        // Drop system configuration tables
+        KapuaConfigurableServiceSchemaUtils.dropSchemaObjects(DEFAULT_COMMONS_PATH);
 
         KapuaSecurityUtils.clearSession();
     }
@@ -314,6 +334,43 @@ public class UserServiceSteps extends KapuaTest {
     public void haveMetadata() {
         if (metadata == null) {
             fail("Metadata should be retreived.");
+        }
+    }
+
+    @When("^I retreive \"(.*)\" metadata with id \"(.*)\" in scope (\\d+)$")
+    public void getMetadataWithIdInScope(String type, String metadataId, int scopeId) throws KapuaException {
+        KapuaEid scpId = new KapuaEid(BigInteger.valueOf(scopeId));
+        Map<String, Object> values = userService.getConfigValues(scpId);
+
+        switch (type) {
+        case "boolean":
+            boolVal = (Boolean) values.get(metadataId);
+            break;
+        case "integer":
+            intVal = (Integer) values.get(metadataId);
+            break;
+        default:
+            break;
+        }
+    }
+
+    @Then("^I receive \"(.*)\" metadata with value \"(.*)\"$")
+    public void reciveMetadata(String type, String value) {
+        switch (type) {
+        case "boolean":
+            Boolean expectedBool = Boolean.valueOf(value);
+            if (!boolVal.equals(expectedBool)) {
+                fail(MessageFormat.format("Boolean values doesn't match, expected {0}, was {1}", expectedBool, boolVal));
+            }
+            break;
+        case "integer":
+            Integer expectedInt = Integer.valueOf(value);
+            if (!intVal.equals(expectedInt)) {
+                fail(MessageFormat.format("Integer values doesn't match, expected {0}, was {1}", expectedInt, intVal));
+            }
+            break;
+        default:
+            break;
         }
     }
 
