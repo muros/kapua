@@ -21,10 +21,14 @@ import java.util.Date;
 import java.util.Map;
 
 import org.eclipse.kapua.KapuaException;
+import org.eclipse.kapua.commons.configuration.metatype.KapuaMetatypeFactoryImpl;
 import org.eclipse.kapua.commons.jpa.AbstractEntityManagerFactory;
 import org.eclipse.kapua.commons.model.id.KapuaEid;
 import org.eclipse.kapua.commons.security.KapuaSecurityUtils;
 import org.eclipse.kapua.commons.security.KapuaSession;
+import org.eclipse.kapua.commons.util.xml.XmlUtil;
+import org.eclipse.kapua.model.config.metatype.KapuaMetatypeFactory;
+import org.eclipse.kapua.model.config.metatype.KapuaTocd;
 import org.eclipse.kapua.model.query.KapuaQuery;
 import org.eclipse.kapua.service.authentication.AuthenticationService;
 import org.eclipse.kapua.service.authorization.AuthorizationService;
@@ -84,6 +88,8 @@ public class UserServiceSteps extends KapuaTest {
 
     Scenario scenario;
 
+    KapuaTocd metadata;
+
     @Before
     public void beforeScenario(Scenario scenario) throws Exception {
 
@@ -116,6 +122,13 @@ public class UserServiceSteps extends KapuaTest {
         User user = userService.findByName("kapua-sys");
         KapuaSession kapuaSession = new KapuaSession(null, null, user.getScopeId(), user.getId(), user.getName());
         KapuaSecurityUtils.setSession(kapuaSession);
+
+        // Set KapuaMetatypeFactory for Metatype configuration
+        KapuaMetatypeFactory metaFactory = new KapuaMetatypeFactoryImpl();
+        mockLocator.setMockedFactory(org.eclipse.kapua.model.config.metatype.KapuaMetatypeFactory.class, metaFactory);
+
+        // Setup JAXB context
+        XmlUtil.setContextProvider(new UsersJAXBContextProvider());
     }
 
     @After
@@ -289,6 +302,18 @@ public class UserServiceSteps extends KapuaTest {
 
             UserCreator userCreator = userCreatorCreator(username, scpId);
             userService.create(userCreator);
+        }
+    }
+
+    @When("^I retreive metadata$")
+    public void getMetadata() throws KapuaException {
+        metadata = userService.getConfigMetadata();
+    }
+
+    @Then("^I have metadata$")
+    public void haveMetadata() {
+        if (metadata == null) {
+            fail("Metadata should be retreived.");
         }
     }
 

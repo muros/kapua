@@ -109,3 +109,9 @@ Scenario: Create multiple users
     | kapua-u3 |    42    |
   When I count users in scope 42
   Then I count 3 users
+
+Scenario: I get metadata
+  Query for service specific metadata.
+
+  When I retreive metadata
+  Then I have metadata
