@@ -98,7 +98,7 @@ public class UserServiceSteps extends KapuaTest {
 
     /** Metadata boolean value. */
     Boolean boolVal = null;
-    
+
     /** Metadata integer value. */
     Integer intVal = null;
 
